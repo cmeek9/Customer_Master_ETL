@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "customer-master-etl"
+version = "0.1.0"
+description = ""
+authors = ["Connor Meek <Meek_Connor@wagnerequipment.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+sqlalchemy = "2.0.30"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
