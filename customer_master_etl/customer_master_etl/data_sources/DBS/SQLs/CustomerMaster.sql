@@ -30,7 +30,7 @@ SELECT DISTINCT
     t2.[PAR03] AS Plan_Annual_Rate_3,
     t2.[SLMN03] AS Sales_Person_Number_3,
     t2.[SLMT03] AS Sales_Person_Type_3,
-    t2.[PAR04] AS Plan_Annual_Rate_3,
+    t2.[PAR04] AS Plan_Annual_Rate_4,
     t2.[SLMN04] AS Sales_Person_Number_4,
     t2.[SLMT04] AS Sales_Person_Type_4
 FROM
