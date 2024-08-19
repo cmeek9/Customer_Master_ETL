@@ -261,7 +261,20 @@ def update_additional_data(cleaned_df, source_data_df):
                          how='left', 
                          suffixes=('', '_source'))
 
-    return merged_df
+    # Update existing columns and add new columns from source_data_df to cleaned_df
+    for col in source_data_df.columns:
+        if col != 'Customer_Number':  # Skip the merge key
+            if col in cleaned_df.columns:
+                # Update existing column
+                cleaned_df[col] = merged_df[col + '_source'].fillna(cleaned_df[col])
+            else:
+                # Add new column
+                cleaned_df[col] = merged_df[col]
+
+    # # Ensure the DataFrame has appropriate data types before loading to SQL Server
+    # cleaned_df = cleaned_df.infer_objects()
+
+    return cleaned_df
 
 
 
@@ -273,7 +286,6 @@ def update_cat_data(cleaned_df, cat_data_df):
                          how='left', 
                          suffixes=('', '_cat'))
     
-
     return merged_df
 
 

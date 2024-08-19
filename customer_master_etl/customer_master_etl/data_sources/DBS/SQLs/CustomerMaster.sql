@@ -22,7 +22,7 @@ SELECT DISTINCT
     t1.LOC AS Customer_Class,
     t2.[CUSIZ2] AS Customer_Size,
     t2.[PAR01] AS Plan_Annual_Rate_1,
-    t2.[SLMN01] AS Sales_Person_Numbe_1,
+    t2.[SLMN01] AS Sales_Person_Number_1,
     t2.[SLMT01] AS Sales_Person_Type_1,
     t2.[PAR02] AS Plan_Annual_Rate_2,
     t2.[SLMN02] AS Sales_Person_Number_2,
