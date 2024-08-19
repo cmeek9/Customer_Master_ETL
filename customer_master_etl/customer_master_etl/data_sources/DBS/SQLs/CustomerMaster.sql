@@ -3,7 +3,7 @@ SELECT DISTINCT
     t1.[CUNM] AS Customer_Name,
     t1.[DIVI] AS Customer_Division,
     t1.CUTYP AS Customer_Type,
-    NULL AS Customer_Street_Address,
+    t1.CUADD2 AS Customer_Street_Address,
     t1.ZIPCD9 AS Customer_ZipCode,
     t1.CUCYST AS [Customer_City],
     t1.CUSTE AS [Customer_State],
