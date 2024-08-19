@@ -1,0 +1,20 @@
+SELECT
+      [DEALER_CUSTOMER_NUMBER] AS CAT_DCN,
+      [DEALER_CUSTOMER_BUSINESS_NAME] AS CAT_Customer_Name,
+      [CUSTOMER_ORGANIZATION_IDENTIFIER] AS CAT_UCID,
+      [UCID_CUSTOMER_NAME] AS UCID_Customer_Name,
+      [DCN_CITY] AS [CAT_DCN_City],
+      [DCN_CREATED_DATE] AS DCN_Created_Date,
+      [DCN_CREATED_CWS_ID] AS DCN_CWS_ID_Created,
+      [DCN_LAST_MODIFIED_CWS_ID] AS DCN_Last_Modified_CWS_ID,
+      [DCN_LAST_MODIFIED_DATE] AS DCN_Last_Modified_Date,
+      [UNC_MARKETING_CUSTOMER_NAME1] AS UNC_Marketing_Customer_Name,
+      [UCID_CREATION_DATE] AS UCID_Created_Date,
+      [UCID_CREATED_BY_CWS] AS UCID_Created_By_CWS,
+      [UCID_ADDRESS_LINE1] AS UCID_Customer_Address,
+      [UCID_CITY] AS UCID_Customer_City,
+      [UCID_STATE] AS UCID_Customer_State,
+      [UCID_ZIP] AS UCID_Customer_ZipCode,
+      [UCID_COUNTRY] AS UCID_Customer_Country,
+      [UCID_EMAIL] AS UCID_Customer_Email
+  FROM [Wagner_ODS].[CatData].[E250_UCID_DCN_Report]

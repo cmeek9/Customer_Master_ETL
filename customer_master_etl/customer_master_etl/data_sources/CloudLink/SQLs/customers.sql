@@ -1,0 +1,35 @@
+SELECT DISTINCT
+	RTRIM(LTRIM([Email])) AS Customer_Email,
+	CASE WHEN type = 'Customer' THEN [id] END AS Customer_Number,
+    CASE WHEN type = 'Customer' THEN [name] END AS Customer_Name,
+	NULL AS Customer_Type,
+    [address1] AS Customer_Street_Address,
+    [zipCode] AS Customer_ZipCode,
+    [city] AS [Customer_City],
+    [state] AS [Customer_State],
+    [country] AS [Customer_Country],
+    NULL AS [Customer_Industry_Code],
+    NULL AS [Customer_Industry_Desc],
+    NULL AS [Customer_Store_Number],
+    NULL AS [Customer_Credit_Manager],
+    NULL AS [Customer_Credit_Rep],
+    NULL AS [Customer_Sales_Rep],
+    NULL AS [Customer_terms_code],
+    NULL AS [Parent_Customer_Number],
+	NULL AS [Parent_Customer_Name],
+    NULL AS [is_deleted_ind],
+	NULL AS [Prospect_Customer_ID],
+	NULL AS [Prospect_Customer_Name],
+    NULL AS Customer_Acquired_date,
+    NULL AS Customer_Class,
+    NULL AS Customer_Division,
+    NULL AS Full_Name,
+    [Phone] AS [Customer_Phone_Number], 
+	'SalesLink' AS [Source_DB],
+    'Customers' AS [Source_Table],
+	GETDATE() AS Source_Timestamp,
+    NULL AS Validated
+FROM 
+	[Customer].[Customers]
+WHERE 
+	type = 'Customer'
