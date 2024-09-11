@@ -90,7 +90,7 @@ def main():
 
                 # Load the final results
                 load_conxn_str = config['Database']['ResConxnString']
-                # Load.load_results(raw_customer_df,load_conxn_str)
+                Load.load_results(raw_customer_df,load_conxn_str)
                 
                 # Stored proc to de-dup & update?
             
