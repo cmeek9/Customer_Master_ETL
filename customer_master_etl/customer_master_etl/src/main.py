@@ -10,6 +10,8 @@ def main():
     # Argument parser for specifying the data source and table
     args = SelectData.parse_arguments()
 
+    print(f"Sections found in config: {config.sections()}")
+
     data_sources = []
     if args.data_source:
         data_sources = [args.data_source]
@@ -84,7 +86,8 @@ def main():
                 raw_customer_df = Transform.update_cat_data(updated_cleaned_df, cat_data_df)
 
                 # Load the final results
-                Load.load_results(raw_customer_df)
+                load_conxn_str = config['Database']['ResConxnString']
+                # Load.load_results(raw_customer_df,load_conxn_str)
                 
                 # Stored proc to de-dup & update?
             
