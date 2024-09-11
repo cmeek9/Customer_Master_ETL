@@ -19,7 +19,7 @@ SELECT DISTINCT
     NULL AS Customer_Acquired_date,
 	NULL AS [Parent_Customer_Name],
     NULL AS [is_deleted_ind],
-	NULL AS [Prospect_Customer_ID],
+	NULL AS [Prospect_Customer_Number],
 	NULL AS [Prospect_Customer_Name],
     NULL AS Customer_Class,
     NULL AS Customer_Division,

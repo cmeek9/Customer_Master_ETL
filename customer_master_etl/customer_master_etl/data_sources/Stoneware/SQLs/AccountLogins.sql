@@ -22,7 +22,7 @@ SELECT DISTINCT
     NULL AS [Parent_Customer_Number],
     NULL AS [Parent_Customer_Name],
     NULL AS [is_deleted_ind],
-    NULL AS [Prospect_Customer_ID],
+    NULL AS [Prospect_Customer_Number],
     NULL AS [Prospect_Customer_Name],
     NULL AS Customer_Acquired_date,
     NULL AS Customer_Class,
@@ -31,12 +31,8 @@ SELECT DISTINCT
     t1.[FirstName] AS First_Name,
     t1.[LastName] AS Last_Name,
     t1.[MobilePhone] AS Customer_Phone_Number,
-    -- ,t1.[WorkPhone]
-    -- ,t1.[Department]
-    -- ,t1.[Title]
     'Stoneware' AS [Source_DB],
     'AccountCompany' AS [Source_Table],
-    -- t1.[Inactive],
     GETDATE() AS Source_Timestamp
   FROM [Stoneware].[dbo].[AccountLogins] t1
   LEFT JOIN [Stoneware].[dbo].[AccountCompany] t2

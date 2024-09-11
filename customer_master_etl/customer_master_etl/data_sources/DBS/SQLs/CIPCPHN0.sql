@@ -18,7 +18,7 @@ SELECT DISTINCT
     NULL AS [Parent_Customer_Number],
 	NULL AS [Parent_Customer_Name],
     NULL AS [is_deleted_ind],
-	NULL AS [Prospect_Customer_ID],
+	NULL AS [Prospect_Customer_Number],
 	NULL AS [Prospect_Customer_Name],
     NULL AS Customer_Size,
     NULL AS Plan_Annual_Rate_1,
