@@ -5,17 +5,22 @@ from customer_master_etl.modules import ExtractCustomerData, Load, Transform, Fu
 
 def main():
     config = configparser.ConfigParser()
-    config.read('../config.ini')
+
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    config_path = os.path.join(root_dir, 'config.ini')
+    config.read(config_path)
 
     # Argument parser for specifying the data source and table
     args = SelectData.parse_arguments()
+
+    data_sources_dir = os.path.join(root_dir, 'data_sources')
 
     data_sources = []
     if args.data_source:
         data_sources = [args.data_source]
     else:
         # No data source specified, get all data sources
-        data_sources = [name for name in os.listdir('../data_sources') if os.path.isdir(os.path.join('../data_sources', name))]
+        data_sources = [name for name in os.listdir(data_sources_dir) if os.path.isdir(os.path.join(data_sources_dir, name))]
 
     for data_source in data_sources:
         print(f"Processing data source: {data_source}")
@@ -38,11 +43,11 @@ def main():
         else:
             if is_excel:
                 # Get all Excel tables
-                excel_folder = os.path.join('../data_sources', data_source, 'Excel')
+                excel_folder = os.path.join(data_sources_dir, data_source, 'Excel')
                 tables = [os.path.splitext(file)[0] for file in os.listdir(excel_folder) if file.endswith('.xlsx')]
             else:
                 # Get all SQL tables
-                sql_dir = os.path.join('../data_sources', data_source, 'SQLs')
+                sql_dir = os.path.join(data_sources_dir, data_source, 'SQLs')
                 tables = [os.path.splitext(file)[0] for file in os.listdir(sql_dir) if file.endswith('.sql')]
 
         for table in tables:
@@ -84,7 +89,8 @@ def main():
                 raw_customer_df = Transform.update_cat_data(updated_cleaned_df, cat_data_df)
 
                 # Load the final results
-                Load.load_results(raw_customer_df)
+                load_conxn_str = config['Database']['ResConxnString']
+                # Load.load_results(raw_customer_df,load_conxn_str)
                 
                 # Stored proc to de-dup & update?
             
