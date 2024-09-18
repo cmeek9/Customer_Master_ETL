@@ -21,7 +21,7 @@ SELECT
 	NULL AS [Prospect_Customer_Number],
 	NULL AS [Prospect_Customer_Name],
     NULL AS Customer_Acquired_date,
-    NULL AS Customer_Class,
+    NULL AS Customer_Location,
     NULL AS Customer_Division,
     NULL AS Full_Name,
 	CAST('DBS' AS VARCHAR(255)) AS [Source_DB],

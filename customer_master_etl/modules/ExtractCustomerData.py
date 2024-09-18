@@ -4,7 +4,7 @@ import os
 import re
 import time
 from datetime import datetime
-from customer_master_etl.modules.SEQLogging import SeqLog
+from customer_master_etl.modules import SEQLogging, Transform
 
 
 def get_data(connection_string, data_source, table_name=None):
@@ -294,3 +294,32 @@ def process_visionlink_excel(df):
     df['Source_Timestamp'] = datetime.now()
     
     return df
+
+
+def extract_and_process_data(data_source, table, is_excel, connection_string=None):
+    if is_excel:
+        extracted_data = process_excel_source(data_source, f"{table}")
+        extracted_data = Transform.reformat_excel_column_headers(extracted_data)
+    else:
+        extracted_data = extract_data(connection_string, data_source, table)
+        extracted_data = pd.DataFrame(extracted_data)
+    
+    return extracted_data
+
+
+# ExtractCustomerData.py
+
+def get_tables_for_data_source(data_sources_dir, data_source, is_excel):
+    """
+    Returns a list of tables for the given data source, either from Excel or SQL files.
+    """
+    if is_excel:
+        # Get all Excel tables
+        folder = os.path.join(data_sources_dir, data_source, 'Excel')
+        tables = [os.path.splitext(file)[0] for file in os.listdir(folder) if file.endswith('.xlsx')]
+    else:
+        # Get all SQL tables
+        folder = os.path.join(data_sources_dir, data_source, 'SQLs')
+        tables = [os.path.splitext(file)[0] for file in os.listdir(folder) if file.endswith('.sql')]
+    
+    return tables

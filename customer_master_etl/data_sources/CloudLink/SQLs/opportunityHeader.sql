@@ -16,7 +16,7 @@ SELECT DISTINCT
 	NULL AS Customer_Type,
     NULL AS Customer_Street_Address,
     NULL AS Customer_ZipCode,
-    NULL AS Customer_Class,
+    NULL AS Customer_Location,
     NULL AS Customer_Division,
 	NULL AS [Parent_Customer_Name],
     NULL AS [is_deleted_ind],

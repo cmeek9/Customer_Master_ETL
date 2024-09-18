@@ -25,7 +25,7 @@ SELECT DISTINCT
     NULL AS [Prospect_Customer_Number],
     NULL AS [Prospect_Customer_Name],
     NULL AS Customer_Acquired_date,
-    NULL AS Customer_Class,
+    NULL AS Customer_Location,
     NULL AS Customer_Division,
     t1.[Name] AS Full_Name,
     t1.[FirstName] AS First_Name,

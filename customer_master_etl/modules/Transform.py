@@ -1,7 +1,7 @@
 import pandas as pd
 import time
 import re
- 
+from customer_master_etl.modules import ExtractCustomerData
 
 def clean_email(email):
     """
@@ -310,3 +310,25 @@ def clean_customer_columns_for_matching(df, df_name="DataFrame"):
             print(f"Warning: Column '{column}' not found in the {df_name} DataFrame.")
     
     return df
+
+
+def extract_and_clean_cat_data(cat_conxn_string):
+    # Extract CAT data and clean it
+    cat_data = ExtractCustomerData.get_cat_data(cat_conxn_string)
+    cat_data_df = pd.DataFrame(cat_data)
+    cat_data_df = clean_customer_columns_for_matching(cat_data_df, df_name="cat_data_df")
+
+    return cat_data_df
+
+
+def clean_and_transform_customer_data(extracted_data, customer_master_string):
+    # Clean extracted data
+    cleaned_df = make_emails_clean(extracted_data)
+
+    # Extract and clean source data for matching
+    source_data = ExtractCustomerData.get_source_data(customer_master_string)
+    source_data_df = pd.DataFrame(source_data)
+    source_data_df = clean_customer_columns_for_matching(source_data_df, df_name="source_data_df")
+    cleaned_df = clean_customer_columns_for_matching(cleaned_df, df_name="cleaned_df")
+
+    return cleaned_df, source_data_df

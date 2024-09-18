@@ -34,7 +34,7 @@ SELECT DISTINCT
     NULL AS Sales_Person_Number_4,
     NULL AS Sales_Person_Type_4,
     NULL AS Customer_Acquired_date,
-    NULL AS Customer_Class,
+    NULL AS Customer_Location,
     NULL AS Customer_Division,
     NULL AS Full_Name,
     CAST('DBS' AS VARCHAR(255)) AS [Source_DB],

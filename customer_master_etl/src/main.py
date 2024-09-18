@@ -1,5 +1,4 @@
 import configparser
-import pandas as pd
 import os
 from customer_master_etl.modules import ExtractCustomerData, Load, Transform, FuzzyMatching, SelectData
 
@@ -41,33 +40,22 @@ def main():
         if args.table and args.data_source:
             tables = [args.table]
         else:
-            if is_excel:
-                # Get all Excel tables
-                excel_folder = os.path.join(data_sources_dir, data_source, 'Excel')
-                tables = [os.path.splitext(file)[0] for file in os.listdir(excel_folder) if file.endswith('.xlsx')]
-            else:
-                # Get all SQL tables
-                sql_dir = os.path.join(data_sources_dir, data_source, 'SQLs')
-                tables = [os.path.splitext(file)[0] for file in os.listdir(sql_dir) if file.endswith('.sql')]
+            # Get tables for the data source (Excel or SQL)
+            tables = ExtractCustomerData.get_tables_for_data_source(data_sources_dir, data_source, is_excel)
+
+            # Exclude the 'CustomerMaster' SQL when processing the 'DBS' data source
+            if data_source == 'DBS':
+                tables = [table for table in tables if table != 'CustomerMaster']
 
         for table in tables:
             print(f"Processing table: {table}")
-            # Perform extraction
-            if is_excel:
-                # Extract & Transform
-                extracted_data = ExtractCustomerData.process_excel_source(data_source, f"{table}")
-                extracted_data = Transform.reformat_excel_column_headers(extracted_data)
-            else:
-                extracted_data = ExtractCustomerData.extract_data(connection_string, data_source, table)
-                extracted_data = pd.DataFrame(extracted_data)
+
+            # Extract and process data
+            extracted_data = ExtractCustomerData.extract_and_process_data(data_source, table, is_excel, connection_string)
 
             # Cleaning and transforming
-            cleaned_df = Transform.make_emails_clean(extracted_data)
             CustomerMasterString = config['CustomerMaster']['connection_string']
-            source_data = ExtractCustomerData.get_source_data(CustomerMasterString)
-            source_data_df = pd.DataFrame(source_data)
-            source_data_df = Transform.clean_customer_columns_for_matching(source_data_df, df_name="source_data_df")
-            cleaned_df = Transform.clean_customer_columns_for_matching(cleaned_df, df_name="cleaned_df")
+            cleaned_df, source_data_df = Transform.clean_and_transform_customer_data(extracted_data, CustomerMasterString)
 
             # Check if fuzzy matching is needed
             FuzzyMatching.check_and_perform_fuzzy_matching(source_data_df, cleaned_df, table, data_source)
@@ -81,16 +69,14 @@ def main():
 
                 # Extract CAT data and clean for matching
                 cat_conxn_string = config['CAT']['cat_conxn_str']
-                cat_data = ExtractCustomerData.get_cat_data(cat_conxn_string)
-                cat_data_df = pd.DataFrame(cat_data)
-                cat_data_df = Transform.clean_customer_columns_for_matching(cat_data_df, df_name="cat_data_df")
+                cat_data_df = Transform.extract_and_clean_cat_data(cat_conxn_string)
 
                 # Update the raw customer data with the CAT data
                 raw_customer_df = Transform.update_cat_data(updated_cleaned_df, cat_data_df)
 
                 # Load the final results
-                load_conxn_str = config['Database']['ResConxnString']
-                Load.load_results(raw_customer_df,load_conxn_str)
+                # load_conxn_str = config['Database']['ResConxnString']
+                # Load.load_results(raw_customer_df,load_conxn_str)
                 
                 # Stored proc to de-dup & update?
             

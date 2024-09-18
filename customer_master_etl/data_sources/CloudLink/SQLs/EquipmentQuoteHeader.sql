@@ -16,7 +16,7 @@ SELECT DISTINCT
     SalesRepID AS [Customer_Sales_Rep],
     NULL AS [Customer_terms_code],
     NULL AS [Parent_Customer_Number],
-    NULL AS Customer_Class,
+    NULL AS Customer_Location,
     NULL AS Customer_Division,
 	NULL AS [Parent_Customer_Name],
     NULL AS [is_deleted_ind],

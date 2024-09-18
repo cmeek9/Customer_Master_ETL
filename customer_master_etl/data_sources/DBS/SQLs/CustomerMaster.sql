@@ -19,7 +19,7 @@ SELECT DISTINCT
 	NULL AS [Parent_Customer_Name],
     t1.FLGDLI AS [is_deleted_ind],
     t1.DTSYS8 AS Customer_Acquired_date,
-    t1.LOC AS Customer_Class,
+    t1.LOC AS Customer_Location,
     t2.[CUSIZ2] AS Customer_Size,
     t2.[PAR01] AS Plan_Annual_Rate_1,
     t2.[SLMN01] AS Sales_Person_Number_1,
@@ -64,6 +64,6 @@ ON
 -- 	NULL AS [Parent_Customer_Name],
 --     FLGDLI AS [is_deleted_ind],
 --     DTSYS8 AS Customer_Acquired_date,
---     LOC AS Customer_Class
+--     LOC AS Customer_Location
 -- FROM
 --     CIPNAME0

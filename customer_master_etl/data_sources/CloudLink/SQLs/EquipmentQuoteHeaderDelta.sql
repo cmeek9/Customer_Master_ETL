@@ -21,7 +21,7 @@ SELECT DISTINCT
     NULL AS [is_deleted_ind],
 	NULL AS [Prospect_Customer_Number],
 	NULL AS [Prospect_Customer_Name],
-    NULL AS Customer_Class,
+    NULL AS Customer_Location,
     NULL AS Customer_Division,
     CustomerContactName AS Full_Name,
     CASE 
