@@ -75,8 +75,8 @@ def main():
                 raw_customer_df = Transform.update_cat_data(updated_cleaned_df, cat_data_df)
 
                 # Load the final results
-                # load_conxn_str = config['Database']['ResConxnString']
-                # Load.load_results(raw_customer_df,load_conxn_str)
+                load_conxn_str = config['Database']['ResConxnString']
+                Load.load_results(raw_customer_df,load_conxn_str)
                 
                 # Stored proc to de-dup & update?
             
