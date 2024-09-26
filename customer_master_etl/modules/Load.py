@@ -32,7 +32,7 @@ def load_results(df, connection_string):
     #             df_filtered[col['name']] = df_filtered[col['name']].apply(lambda x: str(x)[:max_length] if isinstance(x, str) else x)
 
     # Load data into the SQL table
-    df_filtered.to_sql('BronzeCustomerMaster', con=engine, if_exists='append', index=False)
+    df_filtered.to_sql('Bronze_Customer_Master', con=engine, schema='Customer', if_exists='append', index=False)
     print("Data loaded successfully.")
 
 
