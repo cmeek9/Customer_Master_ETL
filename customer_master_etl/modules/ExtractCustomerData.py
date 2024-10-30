@@ -19,38 +19,37 @@ def get_data(connection_string, data_source, table_name=None):
     returns:
         list: a list of data from table.
     '''
-    # try:
-        # Connect to the database
-    engine = create_engine(connection_string, echo=False, fast_executemany=True)
+    try:
+        engine = create_engine(connection_string, echo=False, fast_executemany=True)
 
-    # Get SQL file based on the data source and table name
-    if table_name:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        sql_file = os.path.join(base_dir, "..", "data_sources", data_source, "SQLs", f"{table_name}.sql")
-        print("SQL file path:", sql_file)  # Debug print statement
-        if not os.path.exists(sql_file):
-            print(f"SQL file for table '{table_name}' not found at: {sql_file}")
+        # Get SQL file based on the data source and table name
+        if table_name:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            sql_file = os.path.join(base_dir, "..", "data_sources", data_source, "SQLs", f"{table_name}.sql")
+            print("SQL file path:", sql_file)  # Debug print statement
+            if not os.path.exists(sql_file):
+                print(f"SQL file for table '{table_name}' not found at: {sql_file}")
+                return None
+        else:
+            print("Please provide a table name.")
             return None
-    else:
-        print("Please provide a table name.")
+
+        # Read the SQL query/queries from the file
+        with open(sql_file, "r") as file:
+            query = file.read()
+
+        # Compile the SQL query into a SQLAlchemy using text the input as text
+        compiled_query = text(query)
+
+        # Execute the query and get data
+        with engine.connect() as conn:
+            data = conn.execute(compiled_query).fetchall()
+        return data
+
+    except Exception as e:
+        seq_logger = SEQLogging()
+        seq_logger.error(f'An error has occurred: {str(e)}')
         return None
-
-    # Read the SQL query/queries from the file
-    with open(sql_file, "r") as file:
-        query = file.read()
-
-    # Compile the SQL query into a SQLAlchemy using text the input as text
-    compiled_query = text(query)
-
-    # Execute the query and get data
-    with engine.connect() as conn:
-        data = conn.execute(compiled_query).fetchall()
-    return data
-
-    # except Exception as e:
-    #     seq_logger = SeqLog()
-    #     seq_logger.error(f'An error has occurred: {str(e)}')
-    #     return None
 
 
 def get_source_data(connection_string):
@@ -61,33 +60,33 @@ def get_source_data(connection_string):
         connection_string: Database connection string
         data_source: The data source directory
     '''
-    # try:
+    try:
         # Connect to the database
-    engine = create_engine(connection_string, echo=False, fast_executemany=True)
+        engine = create_engine(connection_string, echo=False, fast_executemany=True)
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    sql_file = os.path.join(base_dir, "..", "data_sources", "DBS", "SQLs", "CustomerMaster.sql")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        sql_file = os.path.join(base_dir, "..", "data_sources", "DBS", "SQLs", "CustomerMaster.sql")
 
-    if not os.path.exists(sql_file):
-        print(f"SQL file for Customer Master data not found at: {sql_file}")
+        if not os.path.exists(sql_file):
+            print(f"SQL file for Customer Master data not found at: {sql_file}")
+            return None
+
+        # Read the SQL query/queries from the file
+        with open(sql_file, "r") as file:
+            query = file.read()
+
+        # Compile the SQL query into a SQLAlchemy using text the input as text
+        compiled_query = text(query)
+
+        # Execute the query and get data
+        with engine.connect() as conn:
+            data = conn.execute(compiled_query).fetchall()
+        return data
+
+    except Exception as e:
+        seq_logger = SEQLogging()
+        seq_logger.error(f'An error has occurred: {str(e)}')
         return None
-
-    # Read the SQL query/queries from the file
-    with open(sql_file, "r") as file:
-        query = file.read()
-
-    # Compile the SQL query into a SQLAlchemy using text the input as text
-    compiled_query = text(query)
-
-    # Execute the query and get data
-    with engine.connect() as conn:
-        data = conn.execute(compiled_query).fetchall()
-    return data
-
-    # except Exception as e:
-    #     seq_logger = SeqLog()
-    #     seq_logger.error(f'An error has occurred: {str(e)}')
-    #     return None
 
 
 def get_cat_data(connection_string):
@@ -98,33 +97,33 @@ def get_cat_data(connection_string):
         connection_string: Database connection string
         data_source: The data source directory
     '''
-    # try:
+    try:
         # Connect to the database
-    engine = create_engine(connection_string, echo=False, fast_executemany=True)
+        engine = create_engine(connection_string, echo=False, fast_executemany=True)
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    sql_file = os.path.join(base_dir, "..", "data_sources", "CAT", "SQLs", "CAT_DCN.sql")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        sql_file = os.path.join(base_dir, "..", "data_sources", "CAT", "SQLs", "CAT_DCN.sql")
 
-    if not os.path.exists(sql_file):
-        print(f"SQL file for Customer Master data not found at: {sql_file}")
+        if not os.path.exists(sql_file):
+            print(f"SQL file for Customer Master data not found at: {sql_file}")
+            return None
+
+        # Read the SQL query/queries from the file
+        with open(sql_file, "r") as file:
+            query = file.read()
+
+        # Compile the SQL query into a SQLAlchemy using text the input as text
+        compiled_query = text(query)
+
+        # Execute the query and get data
+        with engine.connect() as conn:
+            data = conn.execute(compiled_query).fetchall()
+        return data
+
+    except Exception as e:
+        seq_logger = SEQLogging()
+        seq_logger.error(f'An error has occurred: {str(e)}')
         return None
-
-    # Read the SQL query/queries from the file
-    with open(sql_file, "r") as file:
-        query = file.read()
-
-    # Compile the SQL query into a SQLAlchemy using text the input as text
-    compiled_query = text(query)
-
-    # Execute the query and get data
-    with engine.connect() as conn:
-        data = conn.execute(compiled_query).fetchall()
-    return data
-
-    # except Exception as e:
-    #     seq_logger = SeqLog()
-    #     seq_logger.error(f'An error has occurred: {str(e)}')
-    #     return None
 
 
 def extract_data(connection_string, data_source, table):

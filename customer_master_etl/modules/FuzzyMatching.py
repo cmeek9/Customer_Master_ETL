@@ -78,7 +78,6 @@ def update_customer_info(source_data_df, cleaned_df, threshold=65):
 
 
 def check_and_perform_fuzzy_matching(source_data_df, cleaned_df, table, data_source):
-    # Check if both Customer_Number and Customer_Name columns exist
     has_customer_number = 'Customer_Number' in cleaned_df.columns
     has_customer_name = 'Customer_Name' in cleaned_df.columns
 

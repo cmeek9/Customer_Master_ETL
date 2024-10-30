@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, inspect
-from customer_master_etl.modules.SEQLogging import SeqLog 
+from customer_master_etl.modules import SEQLogging
 
 
 def load_results(df, connection_string):
@@ -13,28 +13,32 @@ def load_results(df, connection_string):
     returns:
         None
     '''
+    try:
+        engine = create_engine(connection_string, fast_executemany=True)
 
-    engine = create_engine(connection_string, fast_executemany=True)
+        # ensure the inserted columns match the target table
+        inspector = inspect(engine)
+        table_columns = inspector.get_columns('BronzeCustomerMaster')
+        sql_column_names = [col['name'] for col in table_columns]
 
-    # ensure the inserted columns match the target table
-    inspector = inspect(engine)
-    table_columns = inspector.get_columns('BronzeCustomerMaster')
-    sql_column_names = [col['name'] for col in table_columns]
+        # Filter the DataFrame to include only columns that exist in the SQL table
+        df_filtered = df[df.columns.intersection(sql_column_names)]
 
-    # Filter the DataFrame to include only columns that exist in the SQL table
-    df_filtered = df[df.columns.intersection(sql_column_names)]
+        # # Truncate string data in the DataFrame to match the column sizes in the SQL table
+        # for col in table_columns:
+        #     if col['type'].__class__.__name__ == 'VARCHAR':
+        #         max_length = col['type'].length
+        #         if max_length:
+        #             df_filtered[col['name']] = df_filtered[col['name']].apply(lambda x: str(x)[:max_length] if isinstance(x, str) else x)
 
-    # # Truncate string data in the DataFrame to match the column sizes in the SQL table
-    # for col in table_columns:
-    #     if col['type'].__class__.__name__ == 'VARCHAR':
-    #         max_length = col['type'].length
-    #         if max_length:
-    #             df_filtered[col['name']] = df_filtered[col['name']].apply(lambda x: str(x)[:max_length] if isinstance(x, str) else x)
-
-    # Load data into the SQL table
-    df_filtered.to_sql('Bronze_Customer_Master', con=engine, schema='Customer', if_exists='append', index=False)
-    print("Data loaded successfully.")
-
+        # Load data into the SQL table
+        df_filtered.to_sql('Bronze_Customer_Master', con=engine, schema='Customer', if_exists='append', index=False)
+        print("Data loaded successfully.")
+    
+    except Exception as e:
+        seq_logger = SEQLogging()
+        seq_logger.error(f'An error has occurred: {str(e)}')
+        return None
 
 
 # TEST for truncation issue, may be useful in the future.
