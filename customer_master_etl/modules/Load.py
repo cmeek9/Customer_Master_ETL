@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, inspect
-from customer_master_etl.modules import SEQLogging
+import pandas as pd
+from customer_master_etl.modules.SEQLogging import SeqLog
 
 
 def load_results(df, connection_string):
@@ -13,32 +14,84 @@ def load_results(df, connection_string):
     returns:
         None
     '''
-    try:
-        engine = create_engine(connection_string, fast_executemany=True)
-
-        # ensure the inserted columns match the target table
-        inspector = inspect(engine)
-        table_columns = inspector.get_columns('BronzeCustomerMaster')
-        sql_column_names = [col['name'] for col in table_columns]
-
-        # Filter the DataFrame to include only columns that exist in the SQL table
-        df_filtered = df[df.columns.intersection(sql_column_names)]
-
-        # # Truncate string data in the DataFrame to match the column sizes in the SQL table
-        # for col in table_columns:
-        #     if col['type'].__class__.__name__ == 'VARCHAR':
-        #         max_length = col['type'].length
-        #         if max_length:
-        #             df_filtered[col['name']] = df_filtered[col['name']].apply(lambda x: str(x)[:max_length] if isinstance(x, str) else x)
-
-        # Load data into the SQL table
-        df_filtered.to_sql('Bronze_Customer_Master', con=engine, schema='Customer', if_exists='append', index=False)
-        print("Data loaded successfully.")
+    engine = create_engine(connection_string, fast_executemany=True)
     
+    # Clean the DataFrame
+    cleaned_df = clean_string_columns(df, engine, 'Bronze_Customer_Master')
+    
+    # Filter columns to match SQL table
+    inspector = inspect(engine)
+    table_columns = inspector.get_columns('Bronze_Customer_Master', schema='Customer')
+    sql_column_names = [col['name'] for col in table_columns]
+    df_filtered = cleaned_df[cleaned_df.columns.intersection(sql_column_names)]
+    
+    # Load data
+    try:
+        df_filtered.to_sql(
+            'Bronze_Customer_Master', 
+            con=engine, 
+            schema='Customer', 
+            if_exists='append', 
+            index=False
+        )
+        print("Data loaded successfully.")
     except Exception as e:
-        seq_logger = SEQLogging()
-        seq_logger.error(f'An error has occurred: {str(e)}')
-        return None
+        print(f"Error loading data: {str(e)}")
+        print("\nDataFrame info:")
+        print(df_filtered.info())
+        raise
+    
+    # except Exception as e:
+    #     seq_logger = SeqLog()
+    #     seq_logger.error(f'An error has occurred: {str(e)}')
+    #     return None
+
+
+
+def clean_string_columns(df, engine, table_name, schema='Customer'):
+    """
+    Cleans all string columns in DataFrame by:
+    1. Stripping whitespace
+    2. Truncating to match SQL column lengths
+    3. Converting None/NaN to empty string for string columns
+    
+    Parameters:
+        df: DataFrame to clean
+        engine: SQLAlchemy engine
+        table_name: Target SQL table name
+        schema: SQL schema name
+    
+    Returns:
+        Cleaned DataFrame
+    """
+    inspector = inspect(engine)
+    table_columns = inspector.get_columns(table_name, schema=schema)
+    
+    # Create a copy to avoid modifying the original
+    cleaned_df = df.copy()
+    
+    for col in table_columns:
+        if col['name'] in cleaned_df.columns:
+            # If it's a string/VARCHAR column
+            if col['type'].__class__.__name__ in ('VARCHAR', 'String', 'NVARCHAR'):
+                max_length = col['type'].length
+                
+                # Clean the column
+                cleaned_df[col['name']] = cleaned_df[col['name']].apply(
+                    lambda x: (str(x).strip()[:max_length] 
+                             if isinstance(x, str) and x is not None 
+                             else '') if pd.notna(x) else ''
+                )
+                
+                # Log if any values were truncated
+                original_lengths = df[col['name']].astype(str).apply(len)
+                cleaned_lengths = cleaned_df[col['name']].apply(len)
+                if (original_lengths > cleaned_lengths).any():
+                    print(f"Warning: Some values in column '{col['name']}' were truncated to {max_length} characters")
+    
+    return cleaned_df
+
+
 
 
 # TEST for truncation issue, may be useful in the future.

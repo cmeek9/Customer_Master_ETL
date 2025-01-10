@@ -14,12 +14,21 @@ def main():
 
     data_sources_dir = os.path.join(root_dir, 'data_sources')
 
-    data_sources = []
-    if args.data_source:
-        data_sources = [args.data_source]
+    # Special handling for CustomerMaster
+    if args.data_source == 'CustomerMaster':
+        data_sources = ['CustomerMaster']
     else:
-        # No data source specified, get all data sources
-        data_sources = [name for name in os.listdir(data_sources_dir) if os.path.isdir(os.path.join(data_sources_dir, name))]
+        # Get all data sources except CustomerMaster
+        if args.data_source:
+            # If a specific data source is requested (not CustomerMaster)
+            data_sources = [args.data_source]
+        else:
+            # Get all data sources except CustomerMaster
+            data_sources = [
+                name for name in os.listdir(data_sources_dir)
+                if os.path.isdir(os.path.join(data_sources_dir, name)) 
+                and name != 'CustomerMaster'
+            ]
 
     for data_source in data_sources:
         print(f"Processing data source: {data_source}")
@@ -36,49 +45,42 @@ def main():
         is_excel = ExtractCustomerData.is_excel_source(data_source)
         
         # Determine tables to process
-        tables = []
-        if args.table and args.data_source:
+        if args.table:
             tables = [args.table]
         else:
             # Get tables for the data source (Excel or SQL)
-            tables = ExtractCustomerData.get_tables_for_data_source(data_sources_dir, data_source, is_excel)
-
-            # Exclude the 'CustomerMaster' SQL when processing the 'DBS' data source
-            if data_source == 'DBS':
-                tables = [table for table in tables if table != 'CustomerMaster']
+            tables = ExtractCustomerData.get_tables_for_data_source(
+                data_sources_dir, data_source, is_excel
+            )
 
         for table in tables:
             print(f"Processing table: {table}")
 
             # Extract and process data
-            extracted_data = ExtractCustomerData.extract_and_process_data(data_source, table, is_excel, connection_string)
+            extracted_data = ExtractCustomerData.extract_and_process_data(
+                data_source, table, is_excel, connection_string
+            )
 
-            # Cleaning and transforming
             CustomerMasterString = config['CustomerMaster']['connection_string']
-            cleaned_df, source_data_df = Transform.clean_and_transform_customer_data(extracted_data, CustomerMasterString)
+            cleaned_df, source_data_df = Transform.clean_and_transform_customer_data(
+                extracted_data, CustomerMasterString
+            )
 
-            # Check if fuzzy matching is needed
-            FuzzyMatching.check_and_perform_fuzzy_matching(source_data_df, cleaned_df, table, data_source)
+            FuzzyMatching.check_and_perform_fuzzy_matching(
+                source_data_df, cleaned_df, table, data_source
+            )
 
-            if cleaned_df['Customer_Number'].isnull().all() and cleaned_df['Customer_Name'].isnull().all():
-                # If both Customer_Number and Customer_Name columns are entirely null, load the results as is. Used for prospective customers
-                Load.load_results(cleaned_df)
+
+            if cleaned_df['Customer_Number'].isnull().all() and cleaned_df['Customer_Name'].isnull().all() or data_source == 'CustomerMaster':
+                load_conxn_str = config['Database']['ResConxnString']
+                Load.load_results(cleaned_df, load_conxn_str)
             else:
-                # Backfill customer data with CIPNAME0 after getting fuzzy matching to get other customer info.
                 updated_cleaned_df = Transform.update_additional_data(cleaned_df, source_data_df)
-
-                # Extract CAT data and clean for matching
                 cat_conxn_string = config['CAT']['cat_conxn_str']
                 cat_data_df = Transform.extract_and_clean_cat_data(cat_conxn_string)
-
-                # Update the raw customer data with the CAT data
                 raw_customer_df = Transform.update_cat_data(updated_cleaned_df, cat_data_df)
-
-                # Load the final results
                 load_conxn_str = config['Database']['ResConxnString']
-                Load.load_results(raw_customer_df,load_conxn_str)
-                
-                # Stored proc to de-dup & update?
-            
+                Load.load_results(raw_customer_df, load_conxn_str)
+
 if __name__ == '__main__':
     main()

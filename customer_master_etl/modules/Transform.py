@@ -301,13 +301,20 @@ def clean_customer_columns_for_matching(df, df_name="DataFrame"):
     Returns:
     pandas.DataFrame: The cleaned DataFrame.
     """
+    # First, let's log all columns in the DataFrame
+    print(f"\nColumns in {df_name} before cleaning:", df.columns.tolist())
+    
     columns_to_clean = ['Customer_Name', 'Customer_Number', 'CAT_DCN']
     
     for column in columns_to_clean:
         if column in df.columns:
+            print(f"Cleaning column '{column}' in {df_name}")
             df[column] = df[column].apply(lambda x: x.lower().strip() if isinstance(x, str) else x)
         else:
             print(f"Warning: Column '{column}' not found in the {df_name} DataFrame.")
+    
+    # Log columns after cleaning
+    print(f"Columns in {df_name} after cleaning:", df.columns.tolist())
     
     return df
 
