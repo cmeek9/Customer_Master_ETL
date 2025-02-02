@@ -4,11 +4,9 @@ import json
 from datetime import datetime
  
 class SeqLog:
-    def __init__(self) -> None:
-        config = configparser.ConfigParser()
-        config.read(r"../config.ini")
-        self.seq_url = config['Seq']['URL']
-        self.seq_api_key = config['Seq']['API_Key']
+    def __init__(self, seq_url, seq_key) -> None:
+        self.seq_url = seq_url
+        self.seq_api_key = seq_key
         pass
  
     def info(self, message):

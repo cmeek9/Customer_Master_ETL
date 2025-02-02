@@ -1,50 +1,47 @@
 from sqlalchemy import create_engine, inspect
 import pandas as pd
-from customer_master_etl.modules.SEQLogging import SeqLog
+from customer_master_etl.src.config import logging
 
 
 def load_results(df, connection_string):
     '''
     Loads result set from ETL process.
 
-    parameters:
-        - df: the DataFrame to be loaded into SQL
-        - connection_string: Database connection string
+    Parameters:
+        - df (pandas.DataFrame): The DataFrame to be loaded into SQL.
+        - connection_string (str): Database connection string.
 
-    returns:
+    Returns:
         None
     '''
-    engine = create_engine(connection_string, fast_executemany=True)
-    
-    # Clean the DataFrame
-    cleaned_df = clean_string_columns(df, engine, 'Bronze_Customer_Master')
-    
-    # Filter columns to match SQL table
-    inspector = inspect(engine)
-    table_columns = inspector.get_columns('Bronze_Customer_Master', schema='Customer')
-    sql_column_names = [col['name'] for col in table_columns]
-    df_filtered = cleaned_df[cleaned_df.columns.intersection(sql_column_names)]
-    
-    # Load data
     try:
+        logging.info("Initializing database engine.")
+        engine = create_engine(connection_string, fast_executemany=True)
+
+        # Clean the DataFrame
+        logging.info("Cleaning DataFrame columns for Bronze_Customer_Master.")
+        cleaned_df = clean_string_columns(df, engine, 'Bronze_Customer_Master')
+
+        # Filter columns to match SQL table
+        logging.info("Fetching table columns for Bronze_Customer_Master from the database.")
+        inspector = inspect(engine)
+        table_columns = inspector.get_columns('Bronze_Customer_Master', schema='Customer')
+        sql_column_names = [col['name'] for col in table_columns]
+        df_filtered = cleaned_df[cleaned_df.columns.intersection(sql_column_names)]
+
+        # Load data
+        logging.info("Loading data into Bronze_Customer_Master.")
         df_filtered.to_sql(
-            'Bronze_Customer_Master', 
-            con=engine, 
-            schema='Customer', 
-            if_exists='append', 
+            'Bronze_Customer_Master',
+            con=engine,
+            schema='Customer',
+            if_exists='append',
             index=False
         )
-        print("Data loaded successfully.")
+        logging.info("Data loaded successfully into Bronze_Customer_Master.")
     except Exception as e:
-        print(f"Error loading data: {str(e)}")
-        print("\nDataFrame info:")
-        print(df_filtered.info())
+        logging.error(f"An error occurred while loading data into Bronze_Customer_Master. Error: {str(e)}")
         raise
-    
-    # except Exception as e:
-    #     seq_logger = SeqLog()
-    #     seq_logger.error(f'An error has occurred: {str(e)}')
-    #     return None
 
 
 
@@ -64,32 +61,37 @@ def clean_string_columns(df, engine, table_name, schema='Customer'):
     Returns:
         Cleaned DataFrame
     """
-    inspector = inspect(engine)
-    table_columns = inspector.get_columns(table_name, schema=schema)
-    
-    # Create a copy to avoid modifying the original
-    cleaned_df = df.copy()
-    
-    for col in table_columns:
-        if col['name'] in cleaned_df.columns:
-            # If it's a string/VARCHAR column
-            if col['type'].__class__.__name__ in ('VARCHAR', 'String', 'NVARCHAR'):
-                max_length = col['type'].length
-                
-                # Clean the column
-                cleaned_df[col['name']] = cleaned_df[col['name']].apply(
-                    lambda x: (str(x).strip()[:max_length] 
-                             if isinstance(x, str) and x is not None 
-                             else '') if pd.notna(x) else ''
-                )
-                
-                # Log if any values were truncated
-                original_lengths = df[col['name']].astype(str).apply(len)
-                cleaned_lengths = cleaned_df[col['name']].apply(len)
-                if (original_lengths > cleaned_lengths).any():
-                    print(f"Warning: Some values in column '{col['name']}' were truncated to {max_length} characters")
-    
-    return cleaned_df
+    try:
+        inspector = inspect(engine)
+        table_columns = inspector.get_columns(table_name, schema=schema)
+        
+        # Create a copy to avoid modifying the original
+        cleaned_df = df.copy()
+        
+        for col in table_columns:
+            if col['name'] in cleaned_df.columns:
+                # If it's a string/VARCHAR column
+                if col['type'].__class__.__name__ in ('VARCHAR', 'String', 'NVARCHAR'):
+                    max_length = col['type'].length
+                    
+                    # Clean the column
+                    cleaned_df[col['name']] = cleaned_df[col['name']].apply(
+                        lambda x: (str(x).strip()[:max_length] 
+                                if isinstance(x, str) and x is not None 
+                                else '') if pd.notna(x) else ''
+                    )
+                    
+                    # Log if any values were truncated
+                    original_lengths = df[col['name']].astype(str).apply(len)
+                    cleaned_lengths = cleaned_df[col['name']].apply(len)
+                    if (original_lengths > cleaned_lengths).any():
+                        # logging.warning(f"Some values in column '{col['name']}' were truncated to {max_length} characters")
+                        continue
+        logging.info(f'Successfuly cleaned up all columns and truncated any that would have failed loading into the bronze customer master.')
+        return cleaned_df
+    except Exception as e:
+        logging.error(f"An error occurred while reviewing and truncating columns to load into table, Error: {str(e)}")
+        return None
 
 
 

@@ -2,6 +2,7 @@ import pandas as pd
 import time
 import re
 from customer_master_etl.modules import ExtractCustomerData
+from customer_master_etl.src.config import logging
 
 def clean_email(email):
     """
@@ -14,15 +15,20 @@ def clean_email(email):
         cleaned_email (str):  a cleaned, valid email in the dataframe.
     
     """
-    # Convert email to lowercase and remove whitespace
-    cleaned_email = email.lower().strip()
+    try:
+        # Convert email to lowercase and remove whitespace
+        cleaned_email = email.lower().strip()
 
-    # regex to clean emails from special characters --likely need to improve.
-    cleaned_email = re.sub(r'[^a-zA-Z0-9.@]', '', cleaned_email)
+        # regex to clean emails from special characters --likely need to improve.
+        cleaned_email = re.sub(r'[^a-zA-Z0-9.@]', '', cleaned_email)
 
-    if '@' not in cleaned_email:
+        if '@' not in cleaned_email:
+            return None
+        logging.info(f'Emails cleaned succcessfully.')
+        return cleaned_email
+    except Exception as e:
+        logging.error(f"An error occurred while cleaning emails, Error: {str(e)}")
         return None
-    return cleaned_email
 
  
 def make_emails_clean(df):
@@ -36,12 +42,13 @@ def make_emails_clean(df):
         df (dataframe): A dataframe with a cleaned up version of emails usable for marketing.
     
     """
-    df['Customer_Email'] = df['Customer_Email'].apply(clean_email)
-
-    # # Drop rows with None values in the cleaned_email column
-    # df = df.dropna(subset=['Customer_Email'])
-
-    return df
+    try:
+        df['Customer_Email'] = df['Customer_Email'].apply(clean_email)
+        logging.info(f'helper function to apply clean emails function successful.')
+        return df
+    except Exception as e:
+        logging.error(f" helper function to clean emails applied failed,Error: {str(e)}")
+        return None
 
 
 
@@ -58,9 +65,11 @@ def clean_and_convert_to_number(x):
         Returns the integer value if conversion is successful, otherwise returns 'Error NaN'.
     """
     try:
+        logging.info(f"number converted to integer")
         return int(str(x).strip())
-    except ValueError:
-        return 'Error NaN'
+    except Exception as e:
+        logging.error(f"'Error NaN', Error: {str(e)}")
+        return None
 
     
 
@@ -77,26 +86,29 @@ def make_emails_clean(extracted_data):
     pandas.DataFrame:
         The cleaned DataFrame. If the input was empty or None, an empty DataFrame is returned.
     """
-    # Timing data cleansing process 
-    cleaning_start_time = time.time()
+    try:
+        # Timing data cleansing process 
+        cleaning_start_time = time.time()
 
-    # Process cleaning the extracted data
-    if isinstance(extracted_data, pd.DataFrame):
-        cleaned_df = extracted_data
-    elif extracted_data:
-        # If it's not a DataFrame but contains data, convert it
-        cleaned_df = pd.DataFrame(extracted_data)
-    else:
-        # If it's empty or None, return an empty DataFrame
-        cleaned_df = pd.DataFrame()
+        # Process cleaning the extracted data
+        if isinstance(extracted_data, pd.DataFrame):
+            cleaned_df = extracted_data
+        elif extracted_data:
+            # If it's not a DataFrame but contains data, convert it
+            cleaned_df = pd.DataFrame(extracted_data)
+        else:
+            # If it's empty or None, return an empty DataFrame
+            cleaned_df = pd.DataFrame()
 
-    cleaning_end_time = time.time()
+        cleaning_end_time = time.time()
 
-    # Cleaning time calculation
-    cleaning_time = cleaning_end_time - cleaning_start_time
-    print(f"Data cleaning took {cleaning_time:.2f} seconds.")
-
-    return cleaned_df
+        # Cleaning time calculation
+        cleaning_time = cleaning_end_time - cleaning_start_time
+        logging.info(f"Data cleaning took {cleaning_time:.2f} seconds.")
+        return cleaned_df
+    except Exception as e:
+        logging.error(f"Data cleaning timer failed, Error: {str(e)}")
+        return None
 
 
 def find_match(col_name, column_mapping):
@@ -113,11 +125,19 @@ def find_match(col_name, column_mapping):
     str
         The new column name if a pattern match is found; otherwise, the original column name.
     """
-    for pattern, new_name in column_mapping.items():
-        if re.search(pattern, col_name):
-            return new_name
-    # If no match found, return the original name
-    return col_name
+    try:
+        logging.info(f"Attempting to find a match for column: {col_name}.")
+        
+        for pattern, new_name in column_mapping.items():
+            if re.search(pattern, col_name):
+                logging.info(f"Pattern matched: {pattern} for column: {col_name}. Mapped to: {new_name}.")
+                return new_name
+        
+        logging.info(f"No pattern match found for column: {col_name}. Returning the original column name.")
+        return col_name
+    except Exception as e:
+        logging.error(f"An error occurred while finding a match for column: {col_name}. Error: {str(e)}")
+        raise
 
 
 def create_column_mapping():
@@ -132,23 +152,28 @@ def create_column_mapping():
         - 'Customer_Email' for any column name containing 'email'.
         - 'Customer_Phone_Number' for any column name containing 'phone'.
     """
-    return {
-        r'(?i)^first[\s_]?name$': 'First_Name',
-        r'(?i)^last[\s_]?name$': 'Last_Name',
-        r'(?i)^(customer|company)[\s_]?name$': 'Customer_Name',
-        r'(?i)^name$': 'Customer_Name',
-        r'(?i).*email.*': 'Customer_Email',
-        r'(?i).*phone.*': 'Customer_Phone_Number',
-        r'(?i).*address.*': 'Customer_Street_Address',
-        r'(?i).*city.*': 'Customer_City',
-        r'(?i).*state.*': 'Customer_State',
-        r'(?i).*zip.*': 'Customer_ZipCode',
-        r'(?i).*country.*': 'Customer_Country',
-        r'(?i).*customer[\s_]?number.*': 'Customer_Number',
-        r'(?i).*PARTSTORE DCNs*': 'DCN',
-        # r'(?i).*Ccid*': 'CAT_CCID',
-        # r'(?i).*Ccid_Name*': 'CAT_Customer_Name',
-    }
+    try:
+        logging.info("Creating column mapping dictionary.")
+        column_mapping = {
+            r'(?i)^first[\s_]?name$': 'First_Name',
+            r'(?i)^last[\s_]?name$': 'Last_Name',
+            r'(?i)^(customer|company)[\s_]?name$': 'Customer_Name',
+            r'(?i)^name$': 'Customer_Name',
+            r'(?i).*email.*': 'Customer_Email',
+            r'(?i).*phone.*': 'Customer_Phone_Number',
+            r'(?i).*address.*': 'Customer_Street_Address',
+            r'(?i).*city.*': 'Customer_City',
+            r'(?i).*state.*': 'Customer_State',
+            r'(?i).*zip.*': 'Customer_ZipCode',
+            r'(?i).*country.*': 'Customer_Country',
+            r'(?i).*customer[\s_]?number.*': 'Customer_Number',
+            r'(?i).*PARTSTORE DCNs*': 'DCN',
+        }
+        logging.info("Column mapping dictionary created successfully.")
+        return column_mapping
+    except Exception as e:
+        logging.error(f"An error occurred while creating the column mapping dictionary. Error: {str(e)}")
+        raise
 
 def map_column_names(columns, column_mapping):
     """
@@ -165,17 +190,27 @@ def map_column_names(columns, column_mapping):
         A list of column names where matching columns have been replaced by the corresponding
         new names from the mapping dictionary. Columns that do not match any pattern remain unchanged.
     """
-    new_columns = []
-    for col in columns:
-        matched = False
-        for pattern, new_name in column_mapping.items():
-            if re.match(pattern, col, re.IGNORECASE):
-                new_columns.append(new_name)
-                matched = True
-                break
-        if not matched:
-            new_columns.append(col)
-    return new_columns
+    try:
+        logging.info("Starting column name mapping process.")
+        new_columns = []
+
+        for col in columns:
+            matched = False
+            for pattern, new_name in column_mapping.items():
+                if re.match(pattern, col, re.IGNORECASE):
+                    logging.info(f"Column '{col}' was mapped to '{new_name}'.")
+                    new_columns.append(new_name)
+                    matched = True
+                    break
+            if not matched:
+                logging.info(f"No match found for column '{col}'. Keeping the original name.")
+                new_columns.append(col)
+
+        logging.info("Column name mapping process completed successfully.")
+        return new_columns
+    except Exception as e:
+        logging.error(f"An error occurred during column name mapping. Error: {str(e)}")
+        raise
 
 
 def ensure_unique_column_names(columns):
@@ -190,16 +225,26 @@ def ensure_unique_column_names(columns):
     list of str
         A list of column names where duplicates have been renamed with a numeric suffix to ensure uniqueness.
     """
-    seen = {}
-    unique_columns = []
-    for col in columns:
-        if col in seen:
-            seen[col] += 1
-            unique_columns.append(f"{col}_{seen[col]}")
-        else:
-            seen[col] = 0
-            unique_columns.append(col)
-    return unique_columns
+    try:
+        logging.info("Ensuring unique column names.")
+        seen = {}
+        unique_columns = []
+
+        for col in columns:
+            if col in seen:
+                seen[col] += 1
+                new_name = f"{col}_{seen[col]}"
+                logging.info(f"Duplicate column name '{col}' detected. Renamed to '{new_name}'.")
+                unique_columns.append(new_name)
+            else:
+                seen[col] = 0
+                unique_columns.append(col)
+
+        logging.info("Column name uniqueness ensured successfully.")
+        return unique_columns
+    except Exception as e:
+        logging.error(f"An error occurred while ensuring unique column names. Error: {str(e)}")
+        raise
 
 
 def add_missing_columns(df, required_columns):
@@ -218,15 +263,21 @@ def add_missing_columns(df, required_columns):
         The DataFrame with all required columns, with missing columns added and 
         populated with default values.
     """
-    for col in required_columns:
-        if col not in df.columns:
-            if col == 'Customer_Number':
-                df[col] = None
-            else:
-                df[col] = ''
-    return df
+    try:
+        for col in required_columns:
+            if col not in df.columns:
+                if col == 'Customer_Number':
+                    df[col] = None
+                else:
+                    df[col] = ''
+        logging.info(f"addeding missing customer column needed for fuzzy matching and dataframe joins.")
+        return df
+    except Exception as e:
+        logging.error(f"An error occurred while adding the customer number column into dataframe. Error: {str(e)}")
+        raise
 
-
+# Excel orchestrator 
+# needed for Excel sources
 def reformat_excel_column_headers(df):
     """
     Reformats the column headers of a DataFrame to standardize names and ensure uniqueness.
@@ -244,49 +295,96 @@ def reformat_excel_column_headers(df):
     pandas.DataFrame
         The DataFrame with reformatted, unique, and complete column headers.
     """
-    column_mapping = create_column_mapping()
-    new_columns = map_column_names(df.columns, column_mapping)
-    unique_columns = ensure_unique_column_names(new_columns)
-    df.columns = unique_columns
-    df = add_missing_columns(df, ['Customer_Name', 'Customer_Number'])
-    return df
+    try:
+        column_mapping = create_column_mapping()
+        new_columns = map_column_names(df.columns, column_mapping)
+        unique_columns = ensure_unique_column_names(new_columns)
+        df.columns = unique_columns
+        df = add_missing_columns(df, ['Customer_Name', 'Customer_Number'])
+        logging.info(f"Successfully reformatted the column headers.")
+        return df
+    except Exception as e:
+        logging.error(f"An error occurred while reformatted the column headers, Error: {str(e)}")
+        raise
 
 
 
 def update_additional_data(cleaned_df, source_data_df):
-    # Merge cleaned_df with source_data_df on Customer_Number
-    merged_df = pd.merge(cleaned_df, 
-                         source_data_df, 
-                         on='Customer_Number', 
-                         how='left', 
-                         suffixes=('', '_source'))
+    """
+    Updates the cleaned DataFrame with additional data from the source DataFrame.
 
-    # Update existing columns and add new columns from source_data_df to cleaned_df
-    for col in source_data_df.columns:
-        if col != 'Customer_Number':  # Skip the merge key
-            if col in cleaned_df.columns:
-                # Update existing column
-                cleaned_df[col] = merged_df[col + '_source'].fillna(cleaned_df[col])
-            else:
-                # Add new column
-                cleaned_df[col] = merged_df[col]
+    Parameters:
+        cleaned_df (pd.DataFrame): The cleaned DataFrame containing initial customer data.
+        source_data_df (pd.DataFrame): The source DataFrame containing additional customer data.
 
-    # # Ensure the DataFrame has appropriate data types before loading to SQL Server
-    # cleaned_df = cleaned_df.infer_objects()
+    Returns:
+        pd.DataFrame: An updated DataFrame where customer information is supplemented with data from the source DataFrame.
+    """
+    try:
+        # Merge cleaned_df with source_data_df on Customer_Number
+        logging.info("Merging cleaned_df with source_data_df on 'Customer_Number'.")
+        merged_df = pd.merge(
+            cleaned_df,
+            source_data_df,
+            on='Customer_Number',
+            how='left',
+            suffixes=('', '_source')
+        )
 
-    return cleaned_df
+        # Create a new DataFrame to build the updated results
+        updated_df = merged_df.copy()
+
+        # Ensure Customer_Name is taken from source_data_df (if available)
+        if 'Customer_Name_source' in merged_df.columns:
+            logging.info("Updating 'Customer_Name' from source data where available.")
+            updated_df['Customer_Name'] = updated_df['Customer_Name_source'].fillna(updated_df['Customer_Name'])
+
+        # Remove '_source' columns used in the merge
+        source_columns = [col for col in updated_df.columns if col.endswith('_source')]
+        logging.info(f"Removing temporary columns: {source_columns}.")
+        updated_df = updated_df.drop(columns=source_columns)
+
+        # Remove exact duplicates across all columns
+        logging.info("Removing exact duplicates from the updated DataFrame.")
+        updated_df = updated_df.drop_duplicates()
+
+        logging.info("Additional data update process completed successfully.")
+        return updated_df
+    except Exception as e:
+        logging.error(f"An error occurred during the update of additional data. Error: {str(e)}")
+        raise
+
 
 
 
 def update_cat_data(cleaned_df, cat_data_df):
-    # Merge cleaned_df with cat_data_df on Customer_Number and CAT_DCN
-    merged_df = pd.merge(cleaned_df, cat_data_df, 
-                         left_on='Customer_Number', 
-                         right_on='CAT_DCN', 
-                         how='left', 
-                         suffixes=('', '_cat'))
-    
-    return merged_df
+    """
+    Updates the cleaned DataFrame with CAT data by merging on Customer_Number and CAT_DCN.
+
+    Parameters:
+        cleaned_df (pd.DataFrame): The cleaned DataFrame containing customer data.
+        cat_data_df (pd.DataFrame): The CAT DataFrame containing CAT-specific data.
+
+    Returns:
+        pd.DataFrame: A merged DataFrame with additional CAT data added to the cleaned DataFrame.
+    """
+    try:
+        # Merge cleaned_df with cat_data_df on Customer_Number and CAT_DCN
+        logging.info("Merging cleaned_df with cat_data_df on 'Customer_Number' and 'CAT_DCN'.")
+        merged_df = pd.merge(
+            cleaned_df,
+            cat_data_df,
+            left_on='Customer_Number',
+            right_on='CAT_DCN',
+            how='left',
+            suffixes=('', '_cat')
+        )
+
+        logging.info("CAT data update process completed successfully.")
+        return merged_df
+    except Exception as e:
+        logging.error(f"An error occurred during the update of CAT data. Error: {str(e)}")
+        raise
 
 
 
@@ -301,41 +399,72 @@ def clean_customer_columns_for_matching(df, df_name="DataFrame"):
     Returns:
     pandas.DataFrame: The cleaned DataFrame.
     """
-    # First, let's log all columns in the DataFrame
-    print(f"\nColumns in {df_name} before cleaning:", df.columns.tolist())
-    
-    columns_to_clean = ['Customer_Name', 'Customer_Number', 'CAT_DCN']
-    
-    for column in columns_to_clean:
-        if column in df.columns:
-            print(f"Cleaning column '{column}' in {df_name}")
-            df[column] = df[column].apply(lambda x: x.lower().strip() if isinstance(x, str) else x)
-        else:
-            print(f"Warning: Column '{column}' not found in the {df_name} DataFrame.")
-    
-    # Log columns after cleaning
-    print(f"Columns in {df_name} after cleaning:", df.columns.tolist())
-    
-    return df
-
+    try:
+        columns_to_clean = ['Customer_Name', 'Customer_Number', 'CAT_DCN']
+        
+        for column in columns_to_clean:
+            if column in df.columns:
+                logging.info(f"Cleaning column '{column}' in {df_name}")
+                df[column] = df[column].apply(lambda x: x.lower().strip() if isinstance(x, str) else x)
+            else:
+                logging.info(f"Warning: Column '{column}' not found in the {df_name} DataFrame.")
+        
+        return df
+    except Exception as e:
+        logging.error(f"failed to clean columns for customer matching, Error: {str(e)}")
+        raise
 
 def extract_and_clean_cat_data(cat_conxn_string):
-    # Extract CAT data and clean it
-    cat_data = ExtractCustomerData.get_cat_data(cat_conxn_string)
-    cat_data_df = pd.DataFrame(cat_data)
-    cat_data_df = clean_customer_columns_for_matching(cat_data_df, df_name="cat_data_df")
+    """
+    Extract and clean CAT data.
 
-    return cat_data_df
+    Parameters:
+        cat_conxn_string (str): Database connection string for CAT data.
 
+    Returns:
+        pd.DataFrame: A cleaned DataFrame containing CAT data.
+    """
+    try:
+        logging.info("Extracting CAT data.")
+        cat_data = ExtractCustomerData.get_cat_data(cat_conxn_string)
+        cat_data_df = pd.DataFrame(cat_data)
+        
+        logging.info("Cleaning CAT data columns for matching.")
+        cat_data_df = clean_customer_columns_for_matching(cat_data_df, df_name="cat_data_df")
+        
+        logging.info("CAT data extracted and cleaned successfully.")
+        return cat_data_df
+    except Exception as e:
+        logging.error(f"An error occurred while extracting and cleaning CAT data. Error: {str(e)}")
+        raise
 
 def clean_and_transform_customer_data(extracted_data, customer_master_string):
-    # Clean extracted data
-    cleaned_df = make_emails_clean(extracted_data)
+    """
+    Clean and transform customer data for matching.
 
-    # Extract and clean source data for matching
-    source_data = ExtractCustomerData.get_source_data(customer_master_string)
-    source_data_df = pd.DataFrame(source_data)
-    source_data_df = clean_customer_columns_for_matching(source_data_df, df_name="source_data_df")
-    cleaned_df = clean_customer_columns_for_matching(cleaned_df, df_name="cleaned_df")
+    Parameters:
+        extracted_data (pd.DataFrame): Extracted customer data to be cleaned and transformed.
+        customer_master_string (str): Database connection string for customer master data.
 
-    return cleaned_df, source_data_df
+    Returns:
+        tuple: A tuple containing:
+            - pd.DataFrame: Cleaned extracted data.
+            - pd.DataFrame: Cleaned source customer master data.
+    """
+    try:
+        logging.info("Cleaning extracted customer data.")
+        cleaned_df = make_emails_clean(extracted_data)
+
+        logging.info("Extracting and cleaning source customer master data.")
+        source_data = ExtractCustomerData.get_source_data(customer_master_string)
+        source_data_df = pd.DataFrame(source_data)
+        source_data_df = clean_customer_columns_for_matching(source_data_df, df_name="source_data_df")
+        
+        logging.info("Cleaning extracted data columns for matching.")
+        cleaned_df = clean_customer_columns_for_matching(cleaned_df, df_name="cleaned_df")
+        
+        logging.info("Customer data cleaned and transformed successfully.")
+        return cleaned_df, source_data_df
+    except Exception as e:
+        logging.error(f"An error occurred while cleaning and transforming customer data. Error: {str(e)}")
+        raise
