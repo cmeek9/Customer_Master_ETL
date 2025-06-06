@@ -1,5 +1,5 @@
 import os
-from customer_master_etl.modules import ExtractCustomerData, Load, Transform, FuzzyMatching, SelectData
+from customer_master_etl.modules import ExtractCustomerData, Load, Transform, FuzzyMatching, SelectData, CleanUp
 from customer_master_etl.src.config import config, logging
 
 def main():
@@ -9,21 +9,33 @@ def main():
     # Argument parser for specifying the data source and table
     args = SelectData.parse_arguments()
 
-    # Special handling for CustomerMaster
-    if args.data_source == 'CustomerMaster':
-        data_sources = ['CustomerMaster']
+    if isinstance(args.data_source, list):
+        data_sources  = args.data_source
+        is_weekly_update = True
     else:
-        # Get all data sources except CustomerMaster
-        if args.data_source:
-            # If a specific data source is requested (not CustomerMaster)
-            data_sources = [args.data_source]
+        is_weekly_update = False
+        # Special handling for CustomerMaster
+        if args.data_source == 'CustomerMaster':
+            data_sources = ['CustomerMaster']
         else:
             # Get all data sources except CustomerMaster
-            data_sources = [
-                name for name in os.listdir(data_sources_dir)
-                if os.path.isdir(os.path.join(data_sources_dir, name)) 
-                and name != 'CustomerMaster'
-            ]
+            if args.data_source:
+                # If a specific data source is requested (not CustomerMaster)
+                data_sources = [args.data_source]
+            else:
+                # Get all data sources except CustomerMaster
+                data_sources = [
+                    name for name in os.listdir(data_sources_dir)
+                    if os.path.isdir(os.path.join(data_sources_dir, name)) 
+                    and name != 'CustomerMaster'
+                ]
+    # if you call weekly udpate it cleans out the sources before the ETL getting new data for them
+    if is_weekly_update:
+        logging.info("Running bronze deduplication for weekly update...")
+        CleanUp.run_cleanup("bronze_dedup")
+
+        logging.info("Running weekly update source cleanup...")
+        CleanUp.run_cleanup("weekly_update_clean_up")
 
     for data_source in data_sources:
         logging.info(f"Processing data source: {data_source}")

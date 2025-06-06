@@ -3,6 +3,11 @@ from customer_master_etl.src.config import logging
 
 # this function would be used if somebody would pick from a possible GUI.
 #  else we'd need bat scripts picking each possible option.
+
+# can add to groupings as this gets move advanced and/or defined.
+# Weekly updates will include all SQL sources for now.
+WEEKLY_UPDATE_SOURCES = ['CODA', 'DBS', 'CloudLink']
+
 def select_option(options, prompt):
     """
     Display a list of options and prompt the user to select one.
@@ -42,6 +47,7 @@ def parse_arguments():
     """
     try:
         logging.info("Parsing command-line arguments.")
+
         parser = argparse.ArgumentParser(description='Extract data from a specific table or extract all from the database')
         parser.add_argument(
             'data_source', 
@@ -57,9 +63,16 @@ def parse_arguments():
             type=str, 
             help='Enter the table you wish to extract, if any.'
         )
+
         args = parser.parse_args()
+
+        if args.data_source and args.data_source.lower() == 'weeklyupdate':
+            args.data_source = WEEKLY_UPDATE_SOURCES
+            args.table = None
+
         logging.info(f"Parsed arguments: data_source={args.data_source}, table={args.table}.")
         return args
+
     except Exception as e:
         logging.error(f"An error occurred while parsing arguments. Error: {str(e)}")
         raise

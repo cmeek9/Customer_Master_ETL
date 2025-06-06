@@ -421,3 +421,68 @@ FROM
 	[PartsServiceQuote].[Quote_Header]
 WHERE
 	LEFT(CustomerNo,1) LIKE '$'
+
+
+UNION 
+
+
+SELECT DISTINCT
+	RTRIM(LTRIM([email])) AS Customer_Email,
+	[customerId] AS Customer_Number,
+	[name] AS Customer_Name,
+	NULL AS Customer_Type,
+	[address1] + [address2] + [address3] AS Customer_Street_Address,
+	[zipCode] AS Customer_ZipCode,
+	[city] AS Customer_City,
+	[state] AS Customer_State,
+	NULL AS Customer_Country,
+	NULL AS Customer_Industry_Code,
+	NULL AS Customer_Industry_Desc,
+	NULL AS Customer_Store_Number,
+	NULL AS Customer_Credit_Manager,
+	NULL AS Customer_Credit_Rep,
+	NULL AS Customer_Sales_Rep,
+	NULL AS Customer_terms_code,
+	NULL AS Parent_Customer_Number,
+	NULL AS Parent_Customer_Name,
+	NULL AS is_deleted_ind,
+	NULL AS Prospect_Customer_Number,
+	NULL AS Prospect_Customer_Name,
+	NULL AS Customer_Acquired_date,
+	NULL AS Customer_Location,
+	[mainDivision] AS Customer_Division,
+    [divisions] AS Division_List
+    [typeCode] AS [Type_Code],
+    [typeDescription] AS [Type_Description],
+	[phone] AS Customer_Phone_Number,
+	[name] AS Full_Name,
+	[firstName] AS First_Name,
+	[lastName] AS Last_Name,
+	NULL AS CAT_DCN,
+	NULL AS CAT_Customer_Name,
+	NULL AS CAT_DCN_City,
+	NULL AS DCN_CWS_ID_Created,
+	NULL AS DCN_Created_Date,
+	NULL AS DCN_Last_Modified_Date,
+	NULL AS DCN_Last_Modified_CWS_ID,
+	NULL AS UCID_Created_By_CWS,
+	NULL AS CAT_UCID,
+	NULL AS UCID_Customer_Name,
+	NULL AS UNC_Marketing_Customer_Name,
+	NULL AS UCID_Created_Date,
+	NULL AS UCID_Customer_Address,
+	NULL AS UCID_Customer_City,
+	NULL AS UCID_Customer_State,
+	NULL AS UCID_Customer_ZipCode,
+	NULL AS UCID_Customer_Country,
+	NULL AS UCID_Customer_Email,
+	NULL AS CAT_CCID,
+	NULL AS CAT_CWS_ID,
+	'Cloudlink' AS Source_DB,
+	'Contacts' AS Source_Table,
+	GETDATE() AS Source_Timestamp,
+	NULL AS Validated
+FROM 
+	[Cloudlink].[Contact].[Contacts]
+WHERE 
+	[customerId] LIKE '$%'

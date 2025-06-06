@@ -8,7 +8,7 @@ SELECT
       [DCN_CREATED_CWS_ID] AS DCN_CWS_ID_Created,
       [DCN_LAST_MODIFIED_CWS_ID] AS DCN_Last_Modified_CWS_ID,
       [DCN_LAST_MODIFIED_DATE] AS DCN_Last_Modified_Date,
-      [UNC_MARKETING_CUSTOMER_NAME1] AS UNC_Marketing_Customer_Name,
+      NULL AS UNC_Marketing_Customer_Name,
       [UCID_CREATION_DATE] AS UCID_Created_Date,
       [UCID_CREATED_BY_CWS] AS UCID_Created_By_CWS,
       [UCID_ADDRESS_LINE1] AS UCID_Customer_Address,

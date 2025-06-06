@@ -369,6 +369,10 @@ def update_cat_data(cleaned_df, cat_data_df):
         pd.DataFrame: A merged DataFrame with additional CAT data added to the cleaned DataFrame.
     """
     try:
+        
+        cleaned_df['Customer_Number'] = cleaned_df['Customer_Number'].astype(str).str.strip()
+        cat_data_df['CAT_DCN'] = cat_data_df['CAT_DCN'].astype(str).str.strip()
+
         # Merge cleaned_df with cat_data_df on Customer_Number and CAT_DCN
         logging.info("Merging cleaned_df with cat_data_df on 'Customer_Number' and 'CAT_DCN'.")
         merged_df = pd.merge(
@@ -400,18 +404,21 @@ def clean_customer_columns_for_matching(df, df_name="DataFrame"):
     pandas.DataFrame: The cleaned DataFrame.
     """
     try:
-        columns_to_clean = ['Customer_Name', 'Customer_Number', 'CAT_DCN']
+        columns_to_clean = ['Customer_Name', 'Customer_Number', 'CAT_DCN', 'CAT_UCID']
         
         for column in columns_to_clean:
             if column in df.columns:
                 logging.info(f"Cleaning column '{column}' in {df_name}")
-                df[column] = df[column].apply(lambda x: x.lower().strip() if isinstance(x, str) else x)
+                df[column] = df[column].apply(
+                    lambda x: str(int(x)) if pd.notnull(x) and isinstance(x, (float, int)) 
+                    else (str(x).strip().lower() if pd.notnull(x) else None)
+                )
             else:
                 logging.info(f"Warning: Column '{column}' not found in the {df_name} DataFrame.")
         
         return df
     except Exception as e:
-        logging.error(f"failed to clean columns for customer matching, Error: {str(e)}")
+        logging.error(f"Failed to clean columns for customer matching in {df_name}. Error: {str(e)}")
         raise
 
 def extract_and_clean_cat_data(cat_conxn_string):
