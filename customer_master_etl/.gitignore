@@ -2,6 +2,5 @@ config.ini
 /orchestrator
 
 
-data_sources/PCC
-
-data_sources/VisionLink
+data_sources/PCC/
+data_sources/VisionLink/
